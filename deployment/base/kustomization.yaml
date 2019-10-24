@@ -1,8 +1,6 @@
 resources:
-- configmap.yaml
 - deployment.yaml
 - mutatingwebhook.yaml
-- nginxconfigmap.yaml
 - service.yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -12,6 +10,12 @@ configMapGenerator:
 - name: webhook-server-cert
   files:
   - ca.bundle=ca.bundle
+- name: sidecar-injector-webhook-configmap
+  files:
+  - sidecarconfig.yaml
+- name: nginx-configmap
+  files:
+  - nginx.conf
 vars:
   - name: CABUNDLE
     objref:

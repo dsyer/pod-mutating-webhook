@@ -6,7 +6,7 @@ This tutoral shows how to build and deploy a [MutatingAdmissionWebhook](https://
 
 Kubernetes 1.9.0 or above with the `admissionregistration.k8s.io/v1beta1` API enabled. Verify that by the following command:
 ```
-kubectl api-versions | grep admissionregistration.k8s.io/v1beta1
+kubectl api-versions | grep admissionregistration
 ```
 The result should be:
 ```
@@ -17,14 +17,7 @@ In addition, the `MutatingAdmissionWebhook` and `ValidatingAdmissionWebhook` adm
 
 ## Build
 
-1. Setup dep
-
-   The repo uses [dep](https://github.com/golang/dep) as the dependency management tool for its Go codebase. Install `dep` by the following command:
-```
-go get -u github.com/golang/dep/cmd/dep
-```
-
-2. Build and push docker image
+Build and push docker image
    
 ```
 ./build
@@ -44,16 +37,12 @@ go get -u github.com/golang/dep/cmd/dep
 ```
 cat deployment/mutatingwebhook.yaml | \
     deployment/webhook-patch-ca-bundle.sh > \
-    deployment/mutatingwebhook-ca-bundle.yaml
+    deployment/base/mutatingwebhook-ca-bundle.yaml
 ```
 
 3. Deploy resources
 ```
-kubectl create -f deployment/nginxconfigmap.yaml
-kubectl create -f deployment/configmap.yaml
-kubectl create -f deployment/deployment.yaml
-kubectl create -f deployment/service.yaml
-kubectl create -f deployment/mutatingwebhook-ca-bundle.yaml
+kustomize build deployment/base | kubectl apply -f -
 ```
 
 ## Verify

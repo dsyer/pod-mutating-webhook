@@ -1,0 +1,8 @@
+resources:
+- configmap.yaml
+- deployment.yaml
+- mutatingwebhook-ca-bundle.yaml
+- nginxconfigmap.yaml
+- service.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization

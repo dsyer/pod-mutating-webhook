@@ -11,14 +11,6 @@ configMapGenerator:
 - name: webhook-server-cert
   files:
   - ca.bundle=ca.bundle
-- name: sidecar-injector-webhook-configmap
-  files:
-  - sidecarconfig.yaml
-  behavior: merge
-- name: nginx-configmap
-  files:
-  - nginx.conf
-  behavior: merge
 vars:
   - name: CABUNDLE
     objref:

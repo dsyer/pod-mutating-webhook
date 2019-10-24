@@ -1,4 +1,5 @@
 resources:
+- config.yaml
 - deployment.yaml
 - mutatingwebhook.yaml
 - service.yaml
@@ -13,9 +14,11 @@ configMapGenerator:
 - name: sidecar-injector-webhook-configmap
   files:
   - sidecarconfig.yaml
+  behavior: merge
 - name: nginx-configmap
   files:
   - nginx.conf
+  behavior: merge
 vars:
   - name: CABUNDLE
     objref:

@@ -11,7 +11,7 @@ webhooks:
         name: sidecar-injector-webhook-svc
         namespace: default
         path: "/mutate"
-      caBundle: ${CA_BUNDLE}
+      caBundle: $(CABUNDLE)
     rules:
       - operations: [ "CREATE" ]
         apiGroups: [""]

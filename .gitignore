@@ -11,4 +11,4 @@ kube-mutating-webhook-tutorial
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-deployment/base/mutatingwebhook-ca-bundle.yaml
+deployment/base/ca.bundle

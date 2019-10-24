@@ -33,11 +33,9 @@ Build and push docker image
     --namespace default
 ```
 
-2. Patch the `MutatingWebhookConfiguration` by set `caBundle` with correct value from Kubernetes cluster
+2. Patch the `MutatingWebhookConfiguration` by creating `ca.bundle` with correct value from Kubernetes cluster
 ```
-cat deployment/mutatingwebhook.yaml | \
-    deployment/webhook-patch-ca-bundle.sh > \
-    deployment/base/mutatingwebhook-ca-bundle.yaml
+kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[].cluster.certificate-authority-data}' > deployment/base/ca.bundle
 ```
 
 3. Deploy resources
@@ -70,12 +68,15 @@ kube-system   Active    18h
 3. Deploy an app in Kubernetes cluster, take `sleep` app as an example
 ```
 [root@mstnode ~]# cat <<EOF | kubectl create -f -
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sleep
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: sleep
   template:
     metadata:
       annotations:
@@ -87,6 +88,19 @@ spec:
       - name: sleep
         image: tutum/curl
         command: ["/bin/sleep","infinity"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sleep
+  labels:
+    app: sleep
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: sleep
 EOF
 ```
 

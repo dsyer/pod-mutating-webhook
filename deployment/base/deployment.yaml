@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
         - name: sidecar-injector
-          image: dsyer/sidecar-injector:v2
-          imagePullPolicy: IfNotPresent
+          image: dsyer/sidecar-injector:v3
+          imagePullPolicy: Always
           args:
             - -sidecarCfgFile=/etc/webhook/config/sidecarconfig.yaml
             - -tlsCertFile=/etc/webhook/certs/cert.pem

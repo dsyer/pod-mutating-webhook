@@ -54,6 +54,7 @@ type WhSvrParameters struct {
 type Config struct {
 	Containers  []corev1.Container  `yaml:"containers"`
 	Volumes     []corev1.Volume     `yaml:"volumes"`
+	Annotations map[string]string	`yaml:"annotations"`
 }
 
 type patchOperation struct {
@@ -173,8 +174,9 @@ func addVolume(target, added []corev1.Volume, basePath string) (patch []patchOpe
 
 func updateAnnotation(target map[string]string, added map[string]string) (patch []patchOperation) {
 	for key, value := range added {
-		if target == nil || target[key] == "" {
-			target = map[string]string{}
+		glog.Infof("Target: %v", target)
+		if target == nil {
+			glog.Infof("Creating: %v=%v", key, value)
 			patch = append(patch, patchOperation {
 				Op:   "add",
 				Path: "/metadata/annotations",
@@ -182,10 +184,18 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 					key: value,
 				},
 			})
+		} else if target[key] == "" {
+			glog.Infof("Adding: %v=%v", key, value)
+			patch = append(patch, patchOperation {
+				Op:   "add",
+				Path: "/metadata/annotations/" + strings.ReplaceAll(key, "/","~1"),
+				Value: value,
+			})
 		} else {
+			glog.Infof("Merging: %v=%v", key, value)
 			patch = append(patch, patchOperation {
 				Op:    "replace",
-				Path:  "/metadata/annotations/" + key,
+				Path:  "/metadata/annotations/" + strings.ReplaceAll(key, "/","~1"),
 				Value: value,
 			})
 		}
@@ -196,10 +206,17 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 // create mutation patch for resoures
 func createPatch(pod *corev1.Pod, sidecarConfig *Config, annotations map[string]string) ([]byte, error) {
 	var patch []patchOperation
+	var mergedAnnotations = map[string]string{}
+	for k,v := range annotations {
+		mergedAnnotations[k] = v
+	}
+	for k,v := range sidecarConfig.Annotations {
+		mergedAnnotations[k] = v
+	}
 	
 	patch = append(patch, addContainer(pod.Spec.Containers, sidecarConfig.Containers, "/spec/containers")...)
 	patch = append(patch, addVolume(pod.Spec.Volumes, sidecarConfig.Volumes, "/spec/volumes")...)
-	patch = append(patch, updateAnnotation(pod.Annotations, annotations)...)
+	patch = append(patch, updateAnnotation(pod.Annotations, mergedAnnotations)...)
 
 	return json.Marshal(patch)
 }

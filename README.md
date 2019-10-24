@@ -47,10 +47,10 @@ kustomize build deployment/base | kubectl apply -f -
 
 1. The sidecar inject webhook should be running
 ```
-[root@mstnode ~]# kubectl get pods
+$ kubectl get pods
 NAME                                                  READY     STATUS    RESTARTS   AGE
 sidecar-injector-webhook-deployment-bbb689d69-882dd   1/1       Running   0          5m
-[root@mstnode ~]# kubectl get deployment
+$ kubectl get deployment
 NAME                                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
 sidecar-injector-webhook-deployment   1         1         1            1           5m
 ```
@@ -58,7 +58,7 @@ sidecar-injector-webhook-deployment   1         1         1            1        
 2. Label the default namespace with `sidecar-injector=enabled`
 ```
 kubectl label namespace default sidecar-injector=enabled
-[root@mstnode ~]# kubectl get namespace -L sidecar-injector
+$ kubectl get namespace -L sidecar-injector
 NAME          STATUS    AGE       SIDECAR-INJECTOR
 default       Active    18h       enabled
 kube-public   Active    18h
@@ -67,7 +67,7 @@ kube-system   Active    18h
 
 3. Deploy an app in Kubernetes cluster, take `sleep` app as an example
 ```
-[root@mstnode ~]# cat <<EOF | kubectl create -f -
+$ cat <<EOF | kubectl create -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -88,25 +88,17 @@ spec:
       - name: sleep
         image: tutum/curl
         command: ["/bin/sleep","infinity"]
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: sleep
-  labels:
-    app: sleep
-spec:
-  ports:
-  - port: 80
-    targetPort: 80
-  selector:
-    app: sleep
 EOF
 ```
 
 4. Verify sidecar container injected
 ```
-[root@mstnode ~]# kubectl get pods
+$ kubectl get pods
 NAME                     READY     STATUS        RESTARTS   AGE
 sleep-5c55f85f5c-tn2cs   2/2       Running       0          1m
+$ kubectl port-forward pod/sleep-5db6c7c975-h9slk 8000:80
+$ curl localhost:8000
+<html>
+...
+</html>
 ```

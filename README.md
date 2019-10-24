@@ -87,7 +87,6 @@ spec:
       - name: sleep
         image: tutum/curl
         command: ["/bin/sleep","infinity"]
-        imagePullPolicy: 
 EOF
 ```
 

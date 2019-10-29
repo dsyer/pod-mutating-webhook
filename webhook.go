@@ -174,86 +174,88 @@ func addContainer(target, added []corev1.Container, basePath string) (patch []pa
 }
 
 func merge(in *corev1.Container, out *corev1.Container) {
-		if in.Command != nil {
-			in, out := &in.Command, &out.Command
-			*out = make([]string, len(*in))
-			copy(*out, *in)
-		}
-		if in.Args != nil {
-			in, out := &in.Args, &out.Args
-			*out = make([]string, len(*in))
-			copy(*out, *in)
-		}
-		if in.Ports != nil {
-			in, out := &in.Ports, &out.Ports
-			*out = make([]corev1.ContainerPort, len(*in))
-			copy(*out, *in)
-		}
-		if in.EnvFrom != nil {
-			in, out := &in.EnvFrom, &out.EnvFrom
-			*out = make([]corev1.EnvFromSource, len(*in))
-			for i := range *in {
-				(*in)[i].DeepCopyInto(&(*out)[i])
-			}
-		}
-		if in.Env != nil {
-			in, out := &in.Env, &out.Env
-			*out = make([]corev1.EnvVar, len(*in))
-			for i := range *in {
-				(*in)[i].DeepCopyInto(&(*out)[i])
-			}
-		}
-		in.Resources.DeepCopyInto(&out.Resources)
-		if in.VolumeMounts != nil {
-			in, out := &in.VolumeMounts, &out.VolumeMounts
-			*out = make([]corev1.VolumeMount, len(*in))
-			for i := range *in {
-				(*in)[i].DeepCopyInto(&(*out)[i])
-			}
-		}
-		if in.VolumeDevices != nil {
-			in, out := &in.VolumeDevices, &out.VolumeDevices
-			*out = make([]corev1.VolumeDevice, len(*in))
-			copy(*out, *in)
-		}
-		if in.LivenessProbe != nil {
-			in, out := &in.LivenessProbe, &out.LivenessProbe
-			if *in == nil {
-				*out = nil
-			} else {
-				*out = new(corev1.Probe)
-				(*in).DeepCopyInto(*out)
-			}
-		}
-		if in.ReadinessProbe != nil {
-			in, out := &in.ReadinessProbe, &out.ReadinessProbe
-			if *in == nil {
-				*out = nil
-			} else {
-				*out = new(corev1.Probe)
-				(*in).DeepCopyInto(*out)
-			}
-		}
-		if in.Lifecycle != nil {
-			in, out := &in.Lifecycle, &out.Lifecycle
-			if *in == nil {
-				*out = nil
-			} else {
-				*out = new(corev1.Lifecycle)
-				(*in).DeepCopyInto(*out)
-			}
-		}
-		if in.SecurityContext != nil {
-			in, out := &in.SecurityContext, &out.SecurityContext
-			if *in == nil {
-				*out = nil
-			} else {
-				*out = new(corev1.SecurityContext)
-				(*in).DeepCopyInto(*out)
-			}
-		}
-		return
+	// TODO: Probably this is really bad. Nee dto be more strategic about
+	// merging existing map-like values (e.g. env vars).
+	if in.Command != nil {
+		in, out := &in.Command, &out.Command
+		*out = make([]string, len(*in))
+		copy(*out, *in)
 	}
+	if in.Args != nil {
+		in, out := &in.Args, &out.Args
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.Ports != nil {
+		in, out := &in.Ports, &out.Ports
+		*out = make([]corev1.ContainerPort, len(*in))
+		copy(*out, *in)
+	}
+	if in.EnvFrom != nil {
+		in, out := &in.EnvFrom, &out.EnvFrom
+		*out = make([]corev1.EnvFromSource, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.Env != nil {
+		in, out := &in.Env, &out.Env
+		*out = make([]corev1.EnvVar, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	in.Resources.DeepCopyInto(&out.Resources)
+	if in.VolumeMounts != nil {
+		in, out := &in.VolumeMounts, &out.VolumeMounts
+		*out = make([]corev1.VolumeMount, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.VolumeDevices != nil {
+		in, out := &in.VolumeDevices, &out.VolumeDevices
+		*out = make([]corev1.VolumeDevice, len(*in))
+		copy(*out, *in)
+	}
+	if in.LivenessProbe != nil {
+		in, out := &in.LivenessProbe, &out.LivenessProbe
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(corev1.Probe)
+			(*in).DeepCopyInto(*out)
+		}
+	}
+	if in.ReadinessProbe != nil {
+		in, out := &in.ReadinessProbe, &out.ReadinessProbe
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(corev1.Probe)
+			(*in).DeepCopyInto(*out)
+		}
+	}
+	if in.Lifecycle != nil {
+		in, out := &in.Lifecycle, &out.Lifecycle
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(corev1.Lifecycle)
+			(*in).DeepCopyInto(*out)
+		}
+	}
+	if in.SecurityContext != nil {
+		in, out := &in.SecurityContext, &out.SecurityContext
+		if *in == nil {
+			*out = nil
+		} else {
+			*out = new(corev1.SecurityContext)
+			(*in).DeepCopyInto(*out)
+		}
+	}
+	return
+}
 
 
 func addVolume(target, added []corev1.Volume, basePath string) (patch []patchOperation) {

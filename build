@@ -1,5 +1,5 @@
 CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo
-docker build --no-cache -t dsyer/sidecar-injector:v2 .
-rm -rf kube-mutating-webhook-tutorial
+docker build --no-cache -t dsyer/pod-mutating-webhook:v1 .
+rm -rf pod-mutating-webhook
 
-docker push dsyer/sidecar-injector:v2
+docker push dsyer/pod-mutating-webhook:v1

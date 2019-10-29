@@ -28,8 +28,8 @@ Build and push docker image
 1. Create a signed cert/key pair and store it in a Kubernetes `secret` that will be consumed by sidecar deployment
 ```
 ./deployment/webhook-create-signed-cert.sh \
-    --service sidecar-injector-webhook-svc \
-    --secret sidecar-injector-webhook-certs \
+    --service pod-mutating-webhook \
+    --secret webhook-certs \
     --namespace default
 ```
 
@@ -40,19 +40,19 @@ kubectl config view --raw --minify --flatten -o jsonpath='{.clusters[].cluster.c
 
 3. Deploy resources
 ```
-kustomize build deployment/base | kubectl apply -f -
+kustomize build deployment/annos | kubectl apply -f -
 ```
 
 ## Verify
 
-1. The sidecar inject webhook should be running
+1. The webhook should be running
 ```
 $ kubectl get pods
-NAME                                                  READY     STATUS    RESTARTS   AGE
-sidecar-injector-webhook-deployment-bbb689d69-882dd   1/1       Running   0          5m
+NAME                                   READY     STATUS    RESTARTS   AGE
+pod-mutating-webhook-bbb689d69-882dd   1/1       Running   0          5m
 $ kubectl get deployment
-NAME                                  DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-sidecar-injector-webhook-deployment   1         1         1            1           5m
+NAME                       DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+sidecar-injector-webhook   1         1         1            1           5m
 ```
 
 2. Label the default namespace with `sidecar-injector=enabled`
@@ -80,7 +80,7 @@ spec:
   template:
     metadata:
       annotations:
-        sidecar-injector-webhook.morven.me/inject: "yes"
+        pod-mutating-webhook.spring.io/inject: "yes"
       labels:
         app: sleep
     spec:
@@ -93,12 +93,16 @@ EOF
 
 4. Verify sidecar container injected
 ```
-$ kubectl get pods
-NAME                     READY     STATUS        RESTARTS   AGE
-sleep-5c55f85f5c-tn2cs   2/2       Running       0          1m
-$ kubectl port-forward pod/sleep-5db6c7c975-h9slk 8000:80
-$ curl localhost:8000
-<html>
+$ kubectl get pod sleep-5446865cbd-frnjk -o yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    pod-mutating-webhook.spring.io/inject: "yes"
+    pod-mutating-webhook.spring.io/status: injected
+    prometheus.io/path: /actuator/prometheus
+    prometheus.io/port: "8080"
+    prometheus.io/scrape: "true"
+  creationTimestamp: "2019-10-29T13:36:29Z"
 ...
-</html>
 ```

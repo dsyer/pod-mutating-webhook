@@ -1,19 +1,19 @@
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: sidecar-injector-webhook-cfg
+  name: pod-mutating-webhook
   labels:
-    app: sidecar-injector
+    app: pod-mutating-webhook
 webhooks:
-  - name: sidecar-injector.morven.me
+  - name: pod-mutating-webhook.spring.io
     clientConfig:
       service:
-        name: sidecar-injector-webhook-svc
+        name: pod-mutating-webhook
         namespace: default
         path: "/mutate"
       caBundle: $(CABUNDLE)
     rules:
-      - operations: [ "CREATE" ]
+      - operations: [ "CREATE", "UPDATE" ]
         apiGroups: [""]
         apiVersions: ["v1"]
         resources: ["pods"]

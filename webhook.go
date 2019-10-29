@@ -34,12 +34,12 @@ var ignoredNamespaces = []string {
 }
 
 const (
-	admissionWebhookAnnotationInjectKey = "sidecar-injector-webhook.morven.me/inject"
-	admissionWebhookAnnotationStatusKey = "sidecar-injector-webhook.morven.me/status"
+	admissionWebhookAnnotationInjectKey = "pod-mutating-webhook.spring.io/inject"
+	admissionWebhookAnnotationStatusKey = "pod-mutating-webhook.spring.io/status"
 )
 
 type WebhookServer struct {
-	sidecarConfig    *Config
+	webhookConfig    *Config
 	server           *http.Server
 }
 
@@ -48,7 +48,7 @@ type WhSvrParameters struct {
 	port int                 // webhook server port
 	certFile string          // path to the x509 certificate for https
 	keyFile string           // path to the x509 private key matching `CertFile`
-	sidecarCfgFile string    // path to sidecar injector configuration file
+	webhookCfgFile string    // path to webhook configuration file
 }
 
 type Config struct {
@@ -204,18 +204,18 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 }
 
 // create mutation patch for resoures
-func createPatch(pod *corev1.Pod, sidecarConfig *Config, annotations map[string]string) ([]byte, error) {
+func createPatch(pod *corev1.Pod, webhookConfig *Config, annotations map[string]string) ([]byte, error) {
 	var patch []patchOperation
 	var mergedAnnotations = map[string]string{}
 	for k,v := range annotations {
 		mergedAnnotations[k] = v
 	}
-	for k,v := range sidecarConfig.Annotations {
+	for k,v := range webhookConfig.Annotations {
 		mergedAnnotations[k] = v
 	}
 	
-	patch = append(patch, addContainer(pod.Spec.Containers, sidecarConfig.Containers, "/spec/containers")...)
-	patch = append(patch, addVolume(pod.Spec.Volumes, sidecarConfig.Volumes, "/spec/volumes")...)
+	patch = append(patch, addContainer(pod.Spec.Containers, webhookConfig.Containers, "/spec/containers")...)
+	patch = append(patch, addVolume(pod.Spec.Volumes, webhookConfig.Volumes, "/spec/volumes")...)
 	patch = append(patch, updateAnnotation(pod.Annotations, mergedAnnotations)...)
 
 	return json.Marshal(patch)
@@ -236,7 +236,7 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 
 	glog.Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v (%v) UID=%v patchOperation=%v UserInfo=%v",
 		req.Kind, req.Namespace, req.Name, pod.Name, req.UID, req.Operation, req.UserInfo)
-	
+
 	// determine whether to perform mutation
 	if !mutationRequired(ignoredNamespaces, &pod.ObjectMeta) {
 		glog.Infof("Skipping mutation for %s/%s due to policy check", pod.Namespace, pod.Name)
@@ -246,9 +246,9 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 	}
 	
 	// Workaround: https://github.com/kubernetes/kubernetes/issues/57982
-	applyDefaultsWorkaround(whsvr.sidecarConfig.Containers, whsvr.sidecarConfig.Volumes)
+	applyDefaultsWorkaround(whsvr.webhookConfig.Containers, whsvr.webhookConfig.Volumes)
 	annotations := map[string]string{admissionWebhookAnnotationStatusKey: "injected"}
-	patchBytes, err := createPatch(&pod, whsvr.sidecarConfig, annotations)
+	patchBytes, err := createPatch(&pod, whsvr.webhookConfig, annotations)
 	if err != nil {
 		return &v1beta1.AdmissionResponse {
 			Result: &metav1.Status {

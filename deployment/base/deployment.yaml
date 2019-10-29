@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sidecar-injector-webhook-deployment
+  name: pod-mutating-webhook
   labels:
-    app: sidecar-injector
+    app: pod-mutating-webhook
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sidecar-injector
+      app: pod-mutating-webhook
   template:
     metadata:
       labels:
-        app: sidecar-injector
+        app: pod-mutating-webhook
     spec:
       containers:
-        - name: sidecar-injector
-          image: dsyer/sidecar-injector:v3
+        - name: pod-mutating-webhook
+          image: dsyer/pod-mutating-webhook:v1
           imagePullPolicy: Always
           args:
-            - -sidecarCfgFile=/etc/webhook/config/sidecarconfig.yaml
+            - -webhookCfgFile=/etc/webhook/config/webhookconfig.yaml
             - -tlsCertFile=/etc/webhook/certs/cert.pem
             - -tlsKeyFile=/etc/webhook/certs/key.pem
             - -alsologtostderr
@@ -34,7 +34,7 @@ spec:
       volumes:
         - name: webhook-certs
           secret:
-            secretName: sidecar-injector-webhook-certs
+            secretName: webhook-certs
         - name: webhook-config
           configMap:
-            name: sidecar-injector-webhook-configmap
+            name: webhook-configmap

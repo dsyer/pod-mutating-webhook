@@ -3,7 +3,7 @@ bases:
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 configMapGenerator:
-- name: sidecar-injector-webhook-configmap
+- name: webhook-configmap
   files:
-  - sidecarconfig.yaml
+  - webhookconfig.yaml
   behavior: merge

@@ -1,4 +1,4 @@
-module kube-mutating-webhook-tutorial
+module pod-mutating-webhook
 
 go 1.13
 

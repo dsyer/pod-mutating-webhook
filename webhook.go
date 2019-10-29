@@ -38,12 +38,13 @@ const (
 	admissionWebhookAnnotationStatusKey = "pod-mutating-webhook.spring.io/status"
 )
 
+// WebhookServer The hook implementation plus the server that wraps it
 type WebhookServer struct {
 	webhookConfig    *Config
 	server           *http.Server
 }
 
-// Webhook Server parameters
+// WhSvrParameters Server parameters
 type WhSvrParameters struct {
 	port int                 // webhook server port
 	certFile string          // path to the x509 certificate for https
@@ -51,6 +52,7 @@ type WhSvrParameters struct {
 	webhookCfgFile string    // path to webhook configuration file
 }
 
+// Config Pod configuration
 type Config struct {
 	Containers  []corev1.Container  `yaml:"containers"`
 	Volumes     []corev1.Volume     `yaml:"volumes"`

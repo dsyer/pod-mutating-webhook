@@ -3,7 +3,7 @@
 *.dll
 *.so
 *.dylib
-kube-mutating-webhook-tutorial
+pod-mutating-webhook
 
 # Test binary, build with `go test -c`
 *.test

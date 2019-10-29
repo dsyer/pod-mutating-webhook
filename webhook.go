@@ -134,24 +134,127 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 
 func addContainer(target, added []corev1.Container, basePath string) (patch []patchOperation) {
 	first := len(target) == 0
+	var targets = make(map[string]corev1.Container)
+	var indexes = make(map[string]int)
+	for index, pod := range target {
+		targets[pod.Name] = pod
+		indexes[pod.Name] = index
+	}
 	var value interface{}
 	for _, add := range added {
-		value = add
-		path := basePath
-		if first {
-			first = false
-			value = []corev1.Container{add}
+		if element, ok := targets[add.Name]; ok {
+			glog.Infof("Found existing pod: %v", add.Name)
+			merge(&add, &element)
+			value = element
+			patch = append(patch, patchOperation {
+				Op:    "replace",
+				Path:  fmt.Sprintf("%s/%d", basePath, indexes[add.Name]),
+				Value: value,
+			})
+		} else if element.Image != "" {
+			glog.Infof("Found new pod spec: %v", add.Name)
+			value = add
+			path := basePath
+			if first {
+				first = false
+				value = []corev1.Container{add}
+			} else {
+				path = path + "/-"
+			}
+			patch = append(patch, patchOperation {
+				Op:    "add",
+				Path:  path,
+				Value: value,
+			})
 		} else {
-			path = path + "/-"
+			glog.Infof("Skipping pod spec: %v", add.Name)
 		}
-		patch = append(patch, patchOperation {
-			Op:    "add",
-			Path:  path,
-			Value: value,
-		})
 	}
 	return patch
 }
+
+func merge(in *corev1.Container, out *corev1.Container) {
+		if in.Command != nil {
+			in, out := &in.Command, &out.Command
+			*out = make([]string, len(*in))
+			copy(*out, *in)
+		}
+		if in.Args != nil {
+			in, out := &in.Args, &out.Args
+			*out = make([]string, len(*in))
+			copy(*out, *in)
+		}
+		if in.Ports != nil {
+			in, out := &in.Ports, &out.Ports
+			*out = make([]corev1.ContainerPort, len(*in))
+			copy(*out, *in)
+		}
+		if in.EnvFrom != nil {
+			in, out := &in.EnvFrom, &out.EnvFrom
+			*out = make([]corev1.EnvFromSource, len(*in))
+			for i := range *in {
+				(*in)[i].DeepCopyInto(&(*out)[i])
+			}
+		}
+		if in.Env != nil {
+			in, out := &in.Env, &out.Env
+			*out = make([]corev1.EnvVar, len(*in))
+			for i := range *in {
+				(*in)[i].DeepCopyInto(&(*out)[i])
+			}
+		}
+		in.Resources.DeepCopyInto(&out.Resources)
+		if in.VolumeMounts != nil {
+			in, out := &in.VolumeMounts, &out.VolumeMounts
+			*out = make([]corev1.VolumeMount, len(*in))
+			for i := range *in {
+				(*in)[i].DeepCopyInto(&(*out)[i])
+			}
+		}
+		if in.VolumeDevices != nil {
+			in, out := &in.VolumeDevices, &out.VolumeDevices
+			*out = make([]corev1.VolumeDevice, len(*in))
+			copy(*out, *in)
+		}
+		if in.LivenessProbe != nil {
+			in, out := &in.LivenessProbe, &out.LivenessProbe
+			if *in == nil {
+				*out = nil
+			} else {
+				*out = new(corev1.Probe)
+				(*in).DeepCopyInto(*out)
+			}
+		}
+		if in.ReadinessProbe != nil {
+			in, out := &in.ReadinessProbe, &out.ReadinessProbe
+			if *in == nil {
+				*out = nil
+			} else {
+				*out = new(corev1.Probe)
+				(*in).DeepCopyInto(*out)
+			}
+		}
+		if in.Lifecycle != nil {
+			in, out := &in.Lifecycle, &out.Lifecycle
+			if *in == nil {
+				*out = nil
+			} else {
+				*out = new(corev1.Lifecycle)
+				(*in).DeepCopyInto(*out)
+			}
+		}
+		if in.SecurityContext != nil {
+			in, out := &in.SecurityContext, &out.SecurityContext
+			if *in == nil {
+				*out = nil
+			} else {
+				*out = new(corev1.SecurityContext)
+				(*in).DeepCopyInto(*out)
+			}
+		}
+		return
+	}
+
 
 func addVolume(target, added []corev1.Volume, basePath string) (patch []patchOperation) {
 	first := len(target) == 0

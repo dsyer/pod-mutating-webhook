@@ -174,7 +174,7 @@ func addContainer(target, added []corev1.Container, basePath string) (patch []pa
 }
 
 func merge(in *corev1.Container, out *corev1.Container) {
-	// TODO: Probably this is really bad. Nee dto be more strategic about
+	// TODO: Probably this is really bad. Need to be more strategic about
 	// merging existing map-like values (e.g. env vars).
 	if in.Command != nil {
 		in, out := &in.Command, &out.Command

@@ -55,11 +55,11 @@ NAME                       DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
 sidecar-injector-webhook   1         1         1            1           5m
 ```
 
-2. Label the default namespace with `sidecar-injector=enabled`
+2. Label the default namespace with `pod-mutating=enabled`
 ```
-kubectl label namespace default sidecar-injector=enabled
-$ kubectl get namespace -L sidecar-injector
-NAME          STATUS    AGE       SIDECAR-INJECTOR
+kubectl label namespace default pod-mutating=enabled
+$ kubectl get namespace -L pod-mutating
+NAME          STATUS    AGE       POD-MUTATING
 default       Active    18h       enabled
 kube-public   Active    18h
 kube-system   Active    18h
